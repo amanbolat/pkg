@@ -1,0 +1,5 @@
+["hello"]
+other = "Hello"
+
+["hello_name"]
+other = "Hello {{ .Name }}"

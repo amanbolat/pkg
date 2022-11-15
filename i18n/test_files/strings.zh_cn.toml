@@ -1,0 +1,5 @@
+["hello"]
+other = "你好"
+
+["hello_name"]
+other = "你好{{ .Name }}"
