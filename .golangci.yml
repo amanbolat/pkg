@@ -1,0 +1,94 @@
+run:
+  tests: false
+  timeout: 5m
+
+issues:
+  exclude-use-default: false
+
+linters:
+  enable:
+    - bodyclose
+    - errcheck
+    - goconst
+    - gocritic
+    - gofmt
+    - gci
+    - revive
+    - goprintffuncname
+    - gosec
+    - gosimple
+    - govet
+    - ineffassign
+    - misspell
+    - nakedret
+    - staticcheck
+    - typecheck
+    - unused
+    - errorlint
+    - forcetypeassert
+    - nlreturn
+    - unconvert
+    - unparam
+    - gocyclo
+    - gocognit
+    - dogsled
+    - dupl
+    - errname
+    - exhaustive
+    - exportloopref
+    - whitespace
+    - rowserrcheck
+    - reassign
+    - sqlclosecheck
+    - prealloc
+
+linters-settings:
+  rowserrcheck:
+    packages:
+      - github.com/jmoiron/sqlx
+  revive:
+    ignoreGeneratedHeader: false
+    severity: warning
+    confidence: 0.8
+    errorCode: 0
+    warningCode: 0
+    rules:
+      - name: blank-imports
+      - name: context-as-argument
+      - name: context-keys-type
+      - name: dot-imports
+      - name: error-return
+      - name: error-strings
+      - name: error-naming
+      - name: if-return
+      - name: increment-decrement
+      - name: var-naming
+      - name: var-declaration
+      - name: range
+      - name: receiver-naming
+      - name: time-naming
+      - name: unexported-return
+      - name: indent-error-flow
+      - name: errorf
+      - name: empty-block
+      - name: superfluous-else
+      - name: unused-parameter
+      - name: unreachable-code
+      - name: redefines-builtin-id
+      - name: exported
+      - name: range-val-in-closure
+      - name: range-val-address
+      - name: datarace
+  nlreturn:
+    block-size: 2
+  errcheck:
+    ignore: ((os\.)?std(out|err)\..*|.*Close|.*Flush|os\.)
+    exclude-functions:
+      - (*database/sql.Rows).Close
+  gosec:
+    excludes: # Duplicated errcheck checks
+      - G104 # Audit errors not checked
+      - G307 # Deferring a method which returns an error
+  goconst:
+    # Minimum occurrences of constant string count to trigger issue.
+    min-occurrences: 4

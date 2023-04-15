@@ -3,12 +3,14 @@ package i18n
 import (
 	_ "embed"
 	"fmt"
+	"strings"
+
 	"github.com/BurntSushi/toml"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"golang.org/x/text/language"
-	"strings"
 )
 
+// Localizer is a wrapper around i18n.Localizer with a better API.
 type Localizer struct {
 	localizers       map[language.Tag]*i18n.Localizer
 	defaultLang      language.Tag
@@ -61,10 +63,12 @@ func NewLocalizer(defaultLang language.Tag, messagesMap map[string][]byte) (*Loc
 	return &l, nil
 }
 
+// Localize returns localized string for default language.
 func (l *Localizer) Localize(msgID string, params ...map[string]interface{}) string {
 	return localize(l.defaultLocalizer, msgID, params...)
 }
 
+// LocalizeFor returns localized string for specified language.
 func (l *Localizer) LocalizeFor(lang language.Tag, msgID string, params ...map[string]interface{}) string {
 	localizer, ok := l.localizers[lang]
 	if !ok {
