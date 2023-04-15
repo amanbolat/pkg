@@ -11,3 +11,9 @@ A collection of utility packages that I use for my go projects.
 * net – utility functions for working with network.
 * postgres – a wrapper around `sql.DB` that uses pgx drive under the hood. There are also some helpful utility methods
   to work with Postgres.
+* sql – set of useful interface to encapsulate `sql.DB` methods.
+
+
+## API
+
+⚠️API is not stable yet, so backward compatibility is not guaranteed.
