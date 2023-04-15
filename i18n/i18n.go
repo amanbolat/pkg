@@ -1,7 +1,7 @@
 package i18n
 
 import (
-	_ "embed"
+	_ "embed" // import embed package
 	"fmt"
 	"strings"
 
@@ -91,5 +91,6 @@ func localize(l *i18n.Localizer, msgID string, params ...map[string]interface{})
 	if str == "" {
 		return msgID
 	}
+
 	return str
 }

@@ -75,7 +75,6 @@ linters-settings:
       - name: unused-parameter
       - name: unreachable-code
       - name: redefines-builtin-id
-      - name: exported
       - name: range-val-in-closure
       - name: range-val-address
       - name: datarace
