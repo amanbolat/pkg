@@ -1,7 +1,9 @@
 package pkgcontainer
 
 import (
+	"context"
 	"fmt"
+	"io"
 	"log"
 	"sync"
 
@@ -63,22 +65,37 @@ func NewContainerPool() (*ContainerPool, error) {
 	return NewContainerPoolWithCfg(DefaultContainerPoolConfig())
 }
 
-func (dp *ContainerPool) addResource(r *dockertest.Resource) {
-	dp.mut.Lock()
-	defer dp.mut.Unlock()
-	dp.resources = append(dp.resources, r)
+func (p *ContainerPool) addResource(r *dockertest.Resource) {
+	p.mut.Lock()
+	defer p.mut.Unlock()
+	p.resources = append(p.resources, r)
 }
 
 // Stop tries to stop and remove all the ContainerPool resources.
-func (dp *ContainerPool) Stop() {
-	for _, r := range dp.resources {
-		err := dp.pool.Purge(r)
+func (p *ContainerPool) Stop() {
+	for _, r := range p.resources {
+		err := p.pool.Purge(r)
 		if err != nil {
 			log.Printf("failed to purge container pool resource: %v", err)
 		}
 	}
-	err := dp.pool.Client.RemoveNetwork(dp.networkID)
+	err := p.pool.Client.RemoveNetwork(p.networkID)
 	if err != nil {
 		log.Printf("failed to remove container pool network: %v", err)
 	}
+}
+
+func (p *ContainerPool) TrailLogs(ctx context.Context, w io.Writer, containerID string) error {
+	return p.pool.Client.Logs(docker.LogsOptions{
+		Context:      ctx,
+		Container:    containerID,
+		OutputStream: w,
+		ErrorStream:  w,
+		Tail:         "",
+		Follow:       true,
+		Stdout:       true,
+		Stderr:       true,
+		RawTerminal:  true,
+		Timestamps:   true,
+	})
 }

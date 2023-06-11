@@ -3,7 +3,6 @@ package pkgcontainer
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	pkgpostgres "github.com/amanbolat/pkg/postgres"
 	"github.com/ory/dockertest/v3"
@@ -15,25 +14,24 @@ import (
 type PostgresContainer struct {
 	dsn           string
 	containerName string
+	container     *docker.Container
 }
 
 // PostgresContainerConfig is PostgresContainer configuration.
 type PostgresContainerConfig struct {
-	User      string
-	Password  string
-	DbName    string
-	imageRepo string
-	imageTag  string
+	User     string
+	Password string
+	DbName   string
+	ImageTag string
 }
 
 // DefaultPostgresContainerConfig returns a default PostgresContainerConfig.
 func DefaultPostgresContainerConfig() *PostgresContainerConfig {
 	return &PostgresContainerConfig{
-		User:      "user",
-		Password:  "pass",
-		DbName:    "postgres",
-		imageRepo: "postgres",
-		imageTag:  "15.1-alpine",
+		User:     "user",
+		Password: "pass",
+		DbName:   "postgres",
+		ImageTag: "15.1-alpine",
 	}
 }
 
@@ -44,10 +42,10 @@ func NewPostgresContainer(ctx context.Context, cp *ContainerPool) (*PostgresCont
 
 // NewPostgresContainerWithCfg creates a new PostgresContainer with config.
 func NewPostgresContainerWithCfg(ctx context.Context, cp *ContainerPool, cfg *PostgresContainerConfig) (*PostgresContainer, error) {
-	container, err := cp.pool.RunWithOptions(&dockertest.RunOptions{
+	res, err := cp.pool.RunWithOptions(&dockertest.RunOptions{
 		Name:       containerResourcePrefix + ksuid.New().String(),
-		Repository: cfg.imageRepo,
-		Tag:        cfg.imageTag,
+		Repository: "postgres",
+		Tag:        cfg.ImageTag,
 		NetworkID:  cp.networkID,
 		Env: []string{
 			"POSTGRES_USER=" + cfg.User,
@@ -67,7 +65,7 @@ func NewPostgresContainerWithCfg(ctx context.Context, cp *ContainerPool, cfg *Po
 		return nil, fmt.Errorf("failed to create postgres container: %w", err)
 	}
 
-	dsn := fmt.Sprintf("postgresql://%s:%s@127.0.0.1:%s/%s?sslmode=disable", cfg.User, cfg.Password, container.GetPort("5432/tcp"), cfg.DbName)
+	dsn := fmt.Sprintf("postgresql://%s:%s@127.0.0.1:%s/%s?sslmode=disable", cfg.User, cfg.Password, res.GetPort("5432/tcp"), cfg.DbName)
 
 	pgConn, err := pkgpostgres.NewConn(ctx, pkgpostgres.Config{
 		DSN: dsn,
@@ -80,13 +78,11 @@ func NewPostgresContainerWithCfg(ctx context.Context, cp *ContainerPool, cfg *Po
 	// to ensure that Postgres instance is ready.
 	pgConn.Close()
 
-	cp.addResource(container)
-
-	name := strings.TrimPrefix(container.Container.Name, "/")
+	cp.addResource(res)
 
 	ctr := &PostgresContainer{
-		dsn:           dsn,
-		containerName: name,
+		dsn:       dsn,
+		container: res.Container,
 	}
 
 	return ctr, nil
