@@ -1,6 +1,6 @@
 package pkgpostgres
 
-var (
+const (
 	Err00000 ErrorCode = "00000" // SuccessfulCompletion
 	Err01000 ErrorCode = "01000" // Warning
 	Err0100C ErrorCode = "0100C" // DynamicResultSetsReturned
