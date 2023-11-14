@@ -1,11 +1,11 @@
 package pgx
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/jackc/pgx/v5/pgconn"
 )
@@ -44,6 +44,10 @@ type TxOptions struct {
 	IsoLevel       TxIsoLevel
 	AccessMode     TxAccessMode
 	DeferrableMode TxDeferrableMode
+
+	// BeginQuery is the SQL query that will be executed to begin the transaction. This allows using non-standard syntax
+	// such as BEGIN PRIORITY HIGH with CockroachDB. If set this will override the other settings.
+	BeginQuery string
 }
 
 var emptyTxOptions TxOptions
@@ -52,16 +56,26 @@ func (txOptions TxOptions) beginSQL() string {
 	if txOptions == emptyTxOptions {
 		return "begin"
 	}
-	buf := &bytes.Buffer{}
+
+	if txOptions.BeginQuery != "" {
+		return txOptions.BeginQuery
+	}
+
+	var buf strings.Builder
+	buf.Grow(64) // 64 - maximum length of string with available options
 	buf.WriteString("begin")
+
 	if txOptions.IsoLevel != "" {
-		fmt.Fprintf(buf, " isolation level %s", txOptions.IsoLevel)
+		buf.WriteString(" isolation level ")
+		buf.WriteString(string(txOptions.IsoLevel))
 	}
 	if txOptions.AccessMode != "" {
-		fmt.Fprintf(buf, " %s", txOptions.AccessMode)
+		buf.WriteByte(' ')
+		buf.WriteString(string(txOptions.AccessMode))
 	}
 	if txOptions.DeferrableMode != "" {
-		fmt.Fprintf(buf, " %s", txOptions.DeferrableMode)
+		buf.WriteByte(' ')
+		buf.WriteString(string(txOptions.DeferrableMode))
 	}
 
 	return buf.String()
