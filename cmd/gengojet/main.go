@@ -8,11 +8,10 @@ import (
 	"os"
 	"os/signal"
 	"strings"
-	"time"
-
 	_ "unsafe"
 
 	pkgdecimal "github.com/amanbolat/pkg/decimal"
+	pkgpostgres "github.com/amanbolat/pkg/postgres"
 	pkgsql "github.com/amanbolat/pkg/sql"
 	"github.com/go-jet/jet/v2/generator/metadata"
 	"github.com/go-jet/jet/v2/generator/postgres"
@@ -22,7 +21,6 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/testcontainers/testcontainers-go"
 	pgtestctr "github.com/testcontainers/testcontainers-go/modules/postgres"
-	testctrwait "github.com/testcontainers/testcontainers-go/wait"
 )
 
 func main() {
@@ -68,10 +66,6 @@ func run() error {
 
 	pgCtr, err := pgtestctr.RunContainer(ctx,
 		testcontainers.WithImage("docker.io/postgres:15.2-alpine"),
-		testcontainers.WithWaitStrategy(
-			testctrwait.ForLog("database system is ready to accept connections").
-				WithOccurrence(2).
-				WithStartupTimeout(5*time.Second)),
 	)
 	if err != nil {
 		return fmt.Errorf("failed to run postgres container: %w", err)
@@ -88,6 +82,20 @@ func run() error {
 	if err != nil {
 		return fmt.Errorf("failed to get postgres connection string: %w", err)
 	}
+
+	pgConn, err := pkgpostgres.NewSQLConn(ctx, pkgpostgres.SQLConnConfig{
+		DSN: dsn,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to create postgres connection: %w", err)
+	}
+
+	err = pgConn.Close()
+	if err != nil {
+		return fmt.Errorf("failed to close postgres connection: %w", err)
+	}
+
+	slog.Info("postgres container started", slog.String("dsn", dsn))
 
 	migrator, err := pkgsql.NewMigrator(pkgsql.MigratorConfig{
 		MigrationsDir: *migrationsPath,

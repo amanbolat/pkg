@@ -100,3 +100,7 @@ func NewSQLConn(ctx context.Context, cfg SQLConnConfig) (*SQLConn, error) {
 
 	return c, nil
 }
+
+func (s SQLConn) Close() error {
+	return s.DB.Close()
+}
