@@ -84,7 +84,7 @@ func run() error {
 		}
 	}()
 
-	dsn, err := pgCtr.ConnectionString(ctx)
+	dsn, err := pgCtr.ConnectionString(ctx, "sslmode=disable")
 	if err != nil {
 		return fmt.Errorf("failed to get postgres connection string: %w", err)
 	}
