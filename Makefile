@@ -1,6 +1,5 @@
 export GOBIN := $(PWD)/.bin
 export PATH := $(GOBIN):$(PATH)
-export GOFLAGS := -mod=vendor
 GO_PKGS=$(foreach pkg, $(shell go list ./...), $(if $(findstring /vendor/, $(pkg)), , $(pkg)))
 
 all: mod lint test.all
